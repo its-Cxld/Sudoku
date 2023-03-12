@@ -1,0 +1,141 @@
+// This project is designed to give students experience with 2-dimensional arrays by having them process
+// a Sudoku puzzle board. The board comes in with either one, two, or three missing cells (designated by
+// a zero). If there's a zero cell, we look at everything ELSE in that row, figure out what the missing
+// value(s) is(are), and then display what we fixed.
+//
+// The program accepts sequential 9-x-9 boards, until a board containing all-zeroes is read in.
+//
+// If it's a single missing value, then they have three ways to figure out what it must be -- they can look
+// at the other 8 values in the same row (the easiest way, the other 8 values in the same column, or (if
+// they want to do it a little harder) the same 3-x-3 box. This is the "Type 1" problem.
+//
+// If it's two missing values, then they'll be adjacent in the same row or the same column (per the assignment;
+// not because it is otherwise necessary). If they're in the same row, then they HAVE to look at the two
+// columns involved; likewise, if htey're in the same column, then they HAVE to look at the two rows. This
+// is essentially two Type 1 problems, but they have to figure out whether they're row or column problems,
+// and then the same solution takes cares of both.
+
+// If it's THREE missing values, then they'll be adjacent in an "L" formation. Two are guaranteed to be in
+// the same row, and two are guaranteed to be in the same column. We will make sure that the "L" spans the
+// boundary of a 3-x-3 box, so that they can solve for the "loner" by looking at the 3x3 box, and then they're
+// left with a Type 2 problem
+
+
+
+import java.util.*;
+public class Sudoku 
+{
+	static int[][] board = new int[9][9];
+	static int zeroes = 0;						//to count zeroes in a board
+	static int row = 0, col = 0;				//to help scan board
+	static Scanner input = new Scanner(System.in);
+	
+	public static void main(String[] args)
+	{
+		do										//input will be sequential boards until
+		{										//we have a 9x9 of zeroes
+			readBoard();
+			//System.out.println("We made it back from readBoard");
+			if(zeroes <= 3) solveBoard();
+			
+		}while (zeroes < 81);
+		
+	}
+	
+	static void readBoard()
+	{
+		//method to read the 9x9 boards
+		//and count zeroes in board
+		
+		zeroes = 0;
+		for(row = 0; row < 9; row++)			 //for each row
+			for(col = 0; col < 9; col++)		 //for each column
+			{
+				board[row][col] = input.nextInt();
+				if(board[row][col] == 0) zeroes++;
+			}
+	}
+	
+	public static void solveBoard()
+	{
+		 //we have successfully read in a board and we know how many zeroes we have...
+		 //if we are here, we know that we have 1, 2, or 3 zeroes
+	
+		
+			while(zeroes > 0)
+			{
+				if (zeroes == 1)
+				{
+					//if there is only one missing value, then we need to figure out
+					//what row it is in. Then we can look at everything else in the row
+					//and determine the value that is missing
+					for(row = 0; row < 9; row++)
+						for(col = 0; col < 9; col++)
+							if(board[row][col] == 0)
+							{
+								//find the missing value..Call findMissing
+								//to tell me where (on row) the missing value is
+								//and what it  must be. We already know where it is so we can go
+								//straight to the solution
+								
+								board[row][col] = findMissing(board[row]); //try w/ [row][1] after
+								System.out.println("(" + row + "," + col + "," + board[row][col] + ")");
+							}
+				}
+				else if (zeroes == 2)
+				{
+					//if there are two missing values, then they are either next to each other or
+					//they are stacked
+					for(row = 0; row < 9; row++)
+						for(col = 0; col < 9; col++)
+							if(board[row][col] == 0) //this means we found the first one
+							{
+								if(col!=8)
+									if(board[row][col+1] == 0)
+									{
+										int[] column = new int[] {board[0][col], board[1][col], board[2][col], board[3][col], board[4][col], board[5][col], board[6][col], board[7][col], board[8][col]};
+										board[row][col] = findMissing(board[col]);
+										System.out.println("(" + row + ", " + col + ", " + board[row][col] + ")");
+										
+										board[row][col] = findMissing(new int[] {board[0][col], board[1][col], board[2][col], board[3][col], board[4][col], board[5][col], board[6][col], board[7][col], board[8][col]};
+										board[row][col] = findMissing(board[col]);
+									}
+									else
+									{
+										board[row][col] = findMissing(board[row]);
+									}
+							}
+					
+				}
+			
+
+	 	static int[] findMissing(int[] A)
+	 	{
+	 		//Input A is a 9 element array of ints, with each value being between 0 and 9.
+	 		//Goal of this  method is to return a two-int array that tells value missing(1-9) after
+	 		//locating where it is.
+	 		
+	 		//Boolean array 'found' lets us scratch off each value we do find
+	 		//so we can make a second pass to see what is leftover. This array is over-declared to run
+	 		//0-9, so we can handle all the input values... including the zeroes we need to replace
+	 		
+	 		int location = 0;
+	 		boolean[] found = {false, false, false, false, false, false, false, false, false, false};
+	 		
+	 		for(int i = 0; i < 9; i++)
+	 		{
+	 			found [A[i]] = true;
+	 			if (A[i] == 0) location = i;
+	 		}
+	 		//Now, which value is missing?
+	 		for(int i= 1; i < 10; i++)
+	 		{
+	 			if(!found[i]) return i;
+	 		}
+	 		return null; //If this method isn't successful, program will crash
+	 	}
+	 	
+	}
+
+	}
+}
